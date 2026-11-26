@@ -4,8 +4,8 @@
   "edition": "generic",
   "version": "0.4.14",
   "sourceState": "local-development-snapshot",
-  "createdAt": "2026-11-26T11:01:38.655Z",
-  "fileSetSHA256": "d3338471b3b76d1203e5d97e0cb7df80a57c7f3ab746e98554536d8508e2a5e7",
+  "createdAt": "2026-11-26T12:07:56.067Z",
+  "fileSetSHA256": "9ec9af5e15aab5c33e576866d9c3853554f0a18537506e89db1c952b916a3454",
   "files": [
     {
       "path": ".gitattributes",
@@ -1193,7 +1193,7 @@
     },
     {
       "path": "dsh-electron/src/native-desktop-bridge.mjs",
-      "sha256": "5b89239ee57ab92cfd0bea86bb0d0ad833201278ac98cd05a35bd861f476fcd9"
+      "sha256": "f17e5b3ad6bebde667708dc4c186901e90e5ea0f8ded4ffc978d5a48164332af"
     },
     {
       "path": "dsh-electron/src/native-desktop.mjs",
@@ -1249,11 +1249,11 @@
     },
     {
       "path": "dsh-electron/src/sidebar-browser-preload.cjs",
-      "sha256": "66cd262f13fffde0cd842da9c185dd5f2dda3ac10d25f103f14f3e5ea59ebe36"
+      "sha256": "93d691496a556b5c8a20825bf622e17227b0ec3e96aa7952b8554b6b1e80fa11"
     },
     {
       "path": "dsh-electron/src/sidebar-browser.mjs",
-      "sha256": "12950958cc8c3d599419684558854d0c018149dbced4ede681ec92fc2f753c14"
+      "sha256": "61f36026d5eaa3fb277dac9384edfe2cb07e0e946f646b49d111c23bc1d3c380"
     },
     {
       "path": "dsh-electron/src/software-update-control.mjs",
@@ -1417,7 +1417,7 @@
     },
     {
       "path": "dsh-electron/tests/fixtures/sidebar-browser-app.mjs",
-      "sha256": "eb5305c00b0fb0e2785977fd0d9e4bc456f9b96933243bb81b15cca5e6cacbda"
+      "sha256": "055e76b461ac2ecc585a338410d59d4d79993eff35f3dadba647a6724db0d25a"
     },
     {
       "path": "dsh-electron/tests/host-git-identity.test.mjs",
@@ -1441,7 +1441,7 @@
     },
     {
       "path": "dsh-electron/tests/installer-cleanup.test.mjs",
-      "sha256": "3191491d1b898e56322903bba64360fe0c26903aa1258049c69d7853caa94c23"
+      "sha256": "75c00d07755cf06f924c1a9b00fbde4085bc8a80d7827f7619cdb504bb064548"
     },
     {
       "path": "dsh-electron/tests/legacy-migration.test.mjs",
@@ -1505,7 +1505,7 @@
     },
     {
       "path": "dsh-electron/tests/sidebar-browser.test.mjs",
-      "sha256": "15dcd9f1907d0fcc82381e22cf344fe0f7612928c2fcae1682dcf2679a4cc3f0"
+      "sha256": "83d2ee21d90d61bcb0abe30b6d5b975d1929695cced9780599f21e612de415e0"
     },
     {
       "path": "dsh-electron/tests/software-update-control.test.mjs",
@@ -2157,7 +2157,7 @@
     },
     {
       "path": "dsh-plugins/browser-upstream/lib/sidebar-client.js",
-      "sha256": "619566ccf0c7764b228a3bd61fbdf0fd1c2a048b4ed08f690189205dfff5af38"
+      "sha256": "bb86fb69c18ee511bbec17bc822a537fbb390ebbe6bca8609f22809bec6a1e9a"
     },
     {
       "path": "dsh-plugins/browser-upstream/lib/sidebar.js",
@@ -2193,7 +2193,7 @@
     },
     {
       "path": "dsh-plugins/browser-upstream/test/sidebar.test.mjs",
-      "sha256": "5428596fe0b54a5df499493a726b48ea2ba2a343f5c3679191eb132a6e95dcaf"
+      "sha256": "0069bf48c388fa8198249818927f38a16d6fc82e296a58350b95d295642a9576"
     },
     {
       "path": "dsh-plugins/calendar-subscriptions/.npmrc",

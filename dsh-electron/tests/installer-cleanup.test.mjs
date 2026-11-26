@@ -938,7 +938,7 @@ test('native desktop bridge restores the confirmed language without the Host', {
   mock('file-actions.ts', { installFileActions() {} })
   mock('file-drag.ts', { installDesktopFileDrag: () => ({ dispose() {} }) })
   mock('desktop-menu.mjs', { desktopEditMenu: () => ({ label: 'Edit', submenu: [] }), desktopViewMenu: () => ({ label: 'View', submenu: [] }), setDesktopApplicationMenu() {} })
-  mock('sidebar-browser.mjs', { SIDEBAR_BROWSER_IPC: { bind: 'bind', opened: 'opened', clearData: 'clearData' } })
+  mock('sidebar-browser.mjs', { SIDEBAR_BROWSER_IPC: { bind: 'bind', opened: 'opened', shown: 'shown', clearData: 'clearData' } })
   mock('sidebar-browser-menu.mjs', { attachSidebarBrowserMenu() {} })
   mock('update-observer.mjs', { watchUpdateDocument: () => ({ bind() {}, release() {}, dispose() {} }) })
   let preference = null, hostUnavailable = false
@@ -948,7 +948,7 @@ test('native desktop bridge restores the confirmed language without the Host', {
       socketHeaders: () => ({}), resolveDragResource() {} }),
     waitForHost: async () => { if (hostUnavailable) throw new Error('synthetic Host unavailable') },
     getWindow: () => window, reportFatal() {}, onBootFailure() {}, checkUpdates() {},
-    updates: undefined, pickDirectory() {}, bootBrand: () => '', sidebarBrowser: { bind() {}, opened() {}, close() {} },
+    updates: undefined, pickDirectory() {}, bootBrand: () => '', sidebarBrowser: { bind() {}, opened() {}, shown() {}, close() {} },
   })
   const event = { sender: window.webContents, senderFrame: window.webContents.mainFrame }
   let bridge = install()

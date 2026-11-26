@@ -13,7 +13,7 @@ registerHooks({ resolve(specifier, context, next) {
   return stubs[specifier] ? { url: `data:text/javascript,${stubs[specifier]}`, shortCircuit: true } : next(specifier, context)
 } })
 const { SIDEBAR_BROWSER_ENV, serverLaunch, takeSidebarEndpoint } = await import('../lib/sidebar.js')
-const { workspaceStorage } = await import('../lib/sidebar-client.js')
+const { connectSidebarBrowser, workspaceStorage } = await import('../lib/sidebar-client.js')
 
 const endpoint = 'ws://127.0.0.1:4100/0123456789abcdef0123456789abcdef0123456789abcdef'
 const agent = (origin) => ({ session: { id: 'session-0001', header: origin === undefined ? {} : { origin } } })
@@ -41,6 +41,54 @@ test('subagents, and every Agent without the desktop app, keep the isolated laun
     ['cli.js', '--browser', 'chromium', '--snapshot-mode', 'none', '--timeout-settle', '0', '--isolated'])
   // Web and CLI have no Sidebar endpoint.
   assert.deepEqual(serverLaunch(browser, agent(), undefined, 'cli.js', {}), { args: isolated, env: {} })
+})
+
+test('a visible page is acknowledged after the Sidebar has laid it out', () => {
+  const previousObserver = globalThis.MutationObserver, previousFrame = globalThis.requestAnimationFrame, previousCSS = globalThis.CSS
+  const frames = [], acknowledgements = []
+  globalThis.MutationObserver = class { observe() {} disconnect() {} }
+  globalThis.requestAnimationFrame = callback => frames.push(callback)
+  globalThis.CSS = { escape: value => value }
+  let onRequest
+  const element = () => ({ append() {}, addEventListener() {}, remove() {}, setAttribute() {} })
+  const activeElement = { isConnected: true }
+  const region = { contains: value => value === activeElement }
+  const frame = { parentElement: { append() {} }, blur() {} }
+  const document = {
+    activeElement,
+    body: {},
+    head: { append() {} },
+    createElement: element,
+    querySelector: selector => selector.includes('webview') ? frame : region,
+    querySelectorAll: () => [],
+  }
+  const sidebar = {
+    mounted: { getSnapshot: () => 'session-0001', subscribe: () => () => {} },
+    isExpanded: () => true,
+    active: () => ({ id: 'tab-0001' }),
+    focus() {},
+  }
+  const conversation = () => ({
+    session: { getSnapshot: () => ({ running: true }), subscribe: () => () => {} },
+    eventSource: { getSnapshot: () => ({ entries: [] }), subscribe: () => () => {} },
+  })
+  const dispose = connectSidebarBrowser({
+    bridge: { onRequest(listener) { onRequest = listener; return () => {} }, shown(request) { acknowledgements.push(request) } },
+    desktop: {}, sidebar, document, storage: async () => '', conversation, text: key => key,
+  })
+  try {
+    onRequest({ type: 'show', sessionId: 'session-0001', tabId: 'tab-0001', requestId: 'request-0001' })
+    assert.deepEqual(acknowledgements, [])
+    frames.shift()()
+    assert.deepEqual(acknowledgements, [])
+    frames.shift()()
+    assert.deepEqual(acknowledgements, ['request-0001'])
+  } finally {
+    dispose()
+    globalThis.MutationObserver = previousObserver
+    globalThis.requestAnimationFrame = previousFrame
+    globalThis.CSS = previousCSS
+  }
 })
 
 test('a background page uses its conversation\'s Sidebar storage once the workspace list arrives', { timeout: 5000 }, async () => {

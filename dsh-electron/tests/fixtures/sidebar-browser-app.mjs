@@ -32,6 +32,7 @@ const locale = { id: 'zh-CN', messages: { undo: '撤销', redo: '重做', cut: '
 const own = event => event.sender === window?.webContents && event.senderFrame === window.webContents.mainFrame
 ipcMain.on(SIDEBAR_BROWSER_IPC.bind, (event, ...args) => { if (own(event)) void broker.bind(window, ...args).catch(() => {}) })
 ipcMain.on(SIDEBAR_BROWSER_IPC.opened, (event, ...args) => { if (own(event)) broker.opened(...args) })
+ipcMain.on(SIDEBAR_BROWSER_IPC.shown, (event, request) => { if (own(event)) broker.shown(request) })
 
 // Electron emits ready only after the entry module settles.
 void app.whenReady().then(async () => {
