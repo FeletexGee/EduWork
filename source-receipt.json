@@ -4,8 +4,8 @@
   "edition": "generic",
   "version": "0.4.14",
   "sourceState": "local-development-snapshot",
-  "createdAt": "2026-11-25T02:40:07.601Z",
-  "fileSetSHA256": "412f4324372de3f332715c319d247119cf60c6984ed56988e5777e73cfdd1cfc",
+  "createdAt": "2026-11-26T10:06:44.987Z",
+  "fileSetSHA256": "3d2803956b7ec57d2770f1039e55ba9049b5f3f3f41ac4973b5eac7ceb76fc19",
   "files": [
     {
       "path": ".gitattributes",
@@ -265,11 +265,11 @@
     },
     {
       "path": "docs/CONTENT_UPDATES_EN.md",
-      "sha256": "267d0de401e489ef4f34c16892e38b1570c54cc19c4b19e204f1bc338ebd2e92"
+      "sha256": "c0be4509af3b1a498745976e119eade086a609d0cd5aa0caaba7fe1cf18d97dc"
     },
     {
       "path": "docs/CONTENT_UPDATES.md",
-      "sha256": "73b264665158508b4acf9e8e51f117df4af8358e713418540c0c7f5bc88f49e5"
+      "sha256": "d03058ae586f1eab781f5e423b797cb5aab0f7698cf51da3e208bb9e35b868ac"
     },
     {
       "path": "docs/CORE-020_EN.md",
@@ -3473,15 +3473,15 @@
     },
     {
       "path": "dsh-plugins/workbench-native/README_EN.md",
-      "sha256": "42511ca1b26f89d73f46f8ac1821502193543e59e590a9a4fed8f0a1e263783e"
+      "sha256": "9ccf78f78ab299dec54b60873a158d59e0022b6cf35c8d851ef3317a54762e40"
     },
     {
       "path": "dsh-plugins/workbench-native/README.md",
-      "sha256": "6efcf4a1591d6c12fff91fca44e53f9ae20d29bbc6e1abb8486b8acc2c55786f"
+      "sha256": "6cc4cab902f031b5f1ce356c0c78cb0e7b7975480b5dcb7aab2edd1fea766fad"
     },
     {
       "path": "dsh-plugins/workbench-native/src/client.ts",
-      "sha256": "685f1cc6692228939c847f9f5228792a05261d09d4be9301ce21ca566c8b4753"
+      "sha256": "00b3123338aa11071230770defd17be8841dc9c0e7979693d40d1f337e0844f0"
     },
     {
       "path": "dsh-plugins/workbench-native/src/concurrency.ts",
@@ -3497,7 +3497,7 @@
     },
     {
       "path": "dsh-plugins/workbench-native/src/updates.ts",
-      "sha256": "0b373267999fe45486d630ce273fbd5d8912484f9904a38f97b1410b02359759"
+      "sha256": "fc5a3ae97fb0f007876657341438b532f4511b88ad0254ffa3f14580d9201fa1"
     },
     {
       "path": "dsh-plugins/workbench-native/test/build-client.test.mjs",
@@ -3549,11 +3549,11 @@
     },
     {
       "path": "dsh-plugins/workbench-native/test/updates-browser.mjs",
-      "sha256": "ea451daaa7d422364c3b9c1585a8b2af365dbeba32a587bda76aef42e7917a6f"
+      "sha256": "3ef996d212383d57096e8cbb2264efd6bdc20cae93bdeea1ca4d82525f6088d9"
     },
     {
       "path": "dsh-plugins/workbench-native/test/updates.test.mjs",
-      "sha256": "906ec9a7696cd40d6c545c1467e6cdd9d3d927944787f51295ce3c6c32688ce0"
+      "sha256": "9fbebaed59cfb6f2e073f54cab680d460025dbed14401eaa0e4bbd07207000cc"
     },
     {
       "path": "dsh-plugins/workbench-native/test/window-drag.electron.mjs",
