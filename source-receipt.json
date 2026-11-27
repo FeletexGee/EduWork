@@ -5,7 +5,7 @@
   "version": "0.4.14",
   "sourceState": "local-development-snapshot",
   "createdAt": "2026-11-27T04:27:36.488Z",
-  "fileSetSHA256": "20c30579aab5c4320f278fab5533749d6896538830305aac3eec08c266098747",
+  "fileSetSHA256": "7ff02c7089e0d1a05eb2ef89010cb588645f679ec083ebf6c84e5cae45f5896b",
   "files": [
     {
       "path": ".gitattributes",
@@ -1193,7 +1193,7 @@
     },
     {
       "path": "dsh-electron/src/native-desktop-bridge.mjs",
-      "sha256": "e04527db87bea82f710bff9a704db6c8945d918f9e3d1314badb99531901882f"
+      "sha256": "f973730ff14503a6dbff80c814c4f60e504956f25a1dcf202405f11a11d95814"
     },
     {
       "path": "dsh-electron/src/native-desktop.mjs",
@@ -1249,11 +1249,11 @@
     },
     {
       "path": "dsh-electron/src/sidebar-browser-preload.cjs",
-      "sha256": "d4588ef5351144e7a11f4c92e3033716f602a03b5a8f4ebe886bde5b332d1a58"
+      "sha256": "7b59edb9c14c18b49f453ce07ce9c5552684449462158136cfdaac623144fd22"
     },
     {
       "path": "dsh-electron/src/sidebar-browser.mjs",
-      "sha256": "dfa5210c79910664a9bdad88774c7f735c037c5d5b447b32fd9eb39b82ae3484"
+      "sha256": "4775573095fe1c938f195b195c4452320e780f3ce1c3414c2ad05216f56bce07"
     },
     {
       "path": "dsh-electron/src/software-update-control.mjs",
@@ -1441,7 +1441,7 @@
     },
     {
       "path": "dsh-electron/tests/installer-cleanup.test.mjs",
-      "sha256": "9999fd2eca0ccb2c09adbaad4c563c30341546e333d104b59fd83da916ab4652"
+      "sha256": "d07fa798f0f7b720b9fd5330610c336fa7a577a2c372fb3aa5ad86b0fbd90ba0"
     },
     {
       "path": "dsh-electron/tests/legacy-migration.test.mjs",
@@ -1505,7 +1505,7 @@
     },
     {
       "path": "dsh-electron/tests/sidebar-browser.test.mjs",
-      "sha256": "91397dc5c107938ea6b1c2eb82a28aa0cb9db1256476f33b6eaaba0d137ac16f"
+      "sha256": "05d36772a459b13939e5af9bae0d0fe57476a52062dac50483260c0a16fdb209"
     },
     {
       "path": "dsh-electron/tests/software-update-control.test.mjs",
@@ -2161,7 +2161,7 @@
     },
     {
       "path": "dsh-plugins/browser-upstream/lib/sidebar-client.js",
-      "sha256": "e69218dc86baab3e46db1220e4cdaefa438f209c3506d6c978f8c772810ab945"
+      "sha256": "a5a7ba7b188800e0a2fa88e9f15796f4a81f1aaf23e1477a7f77cdd2b8eb9394"
     },
     {
       "path": "dsh-plugins/browser-upstream/lib/sidebar.js",
