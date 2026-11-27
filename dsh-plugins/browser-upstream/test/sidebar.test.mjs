@@ -44,9 +44,11 @@ test('subagents, and every Agent without the desktop app, keep the isolated laun
 })
 
 test('a visible page is acknowledged after the Sidebar has laid it out', () => {
-  const previousObserver = globalThis.MutationObserver, previousFrame = globalThis.requestAnimationFrame, previousCSS = globalThis.CSS
+  const previousObserver = globalThis.MutationObserver, previousResizeObserver = globalThis.ResizeObserver
+  const previousFrame = globalThis.requestAnimationFrame, previousCSS = globalThis.CSS
   const frames = [], acknowledgements = []
   globalThis.MutationObserver = class { observe() {} disconnect() {} }
+  globalThis.ResizeObserver = class { observe() {} unobserve() {} disconnect() {} }
   globalThis.requestAnimationFrame = callback => frames.push(callback)
   globalThis.CSS = { escape: value => value }
   let onRequest
@@ -68,13 +70,14 @@ test('a visible page is acknowledged after the Sidebar has laid it out', () => {
     active: () => ({ id: 'tab-0001' }),
     focus() {},
   }
+  const desktopWidth = { getSnapshot: () => false, subscribe: () => () => {} }
   const conversation = () => ({
     session: { getSnapshot: () => ({ running: true }), subscribe: () => () => {} },
     eventSource: { getSnapshot: () => ({ entries: [] }), subscribe: () => () => {} },
   })
   const dispose = connectSidebarBrowser({
     bridge: { onRequest(listener) { onRequest = listener; return () => {} }, shown(request) { acknowledgements.push(request) } },
-    desktop: {}, sidebar, document, storage: async () => '', conversation, text: key => key,
+    desktop: {}, sidebar, document, storage: async () => '', conversation, text: key => key, desktopWidth,
   })
   try {
     onRequest({ type: 'show', sessionId: 'session-0001', tabId: 'tab-0001', requestId: 'request-0001' })
@@ -86,6 +89,7 @@ test('a visible page is acknowledged after the Sidebar has laid it out', () => {
   } finally {
     dispose()
     globalThis.MutationObserver = previousObserver
+    globalThis.ResizeObserver = previousResizeObserver
     globalThis.requestAnimationFrame = previousFrame
     globalThis.CSS = previousCSS
   }
