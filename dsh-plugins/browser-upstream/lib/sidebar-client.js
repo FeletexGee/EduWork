@@ -352,12 +352,16 @@ export function connectSidebarBrowser({ bridge, desktop, sidebar, document, stor
       opened.delete(sessionId)
       for (const [tabId, page] of backgrounds) if (page.sessionId === sessionId) closeBackground(tabId)
     },
-    show({ sessionId, tabId }) {
+    show({ sessionId, tabId, requestId }) {
       working.add(sessionId)
       paint()
-      if (tabId === undefined) return
-      mark(sessionId, tabId)
-      if (sidebar.mounted.getSnapshot() === sessionId && !backgrounds.has(tabId)) reveal(sessionId, tabId)
+      if (tabId !== undefined) {
+        mark(sessionId, tabId)
+        if (sidebar.mounted.getSnapshot() === sessionId && !backgrounds.has(tabId)) reveal(sessionId, tabId)
+      }
+      if (requestId === undefined) return
+      if (tabId === undefined || sidebar.mounted.getSnapshot() !== sessionId || backgrounds.has(tabId)) bridge.shown(requestId)
+      else requestAnimationFrame(() => requestAnimationFrame(() => bridge.shown(requestId)))
     },
     idle({ sessionId }) {
       working.delete(sessionId)
