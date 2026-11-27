@@ -74,7 +74,7 @@ export function inspectArchive(bytes, selected, expectedVersion) {
       assert.ok(files.has(file), `Missing auto-approval plugin file ${file}`)
     }
   }
-  if (selected.id === 'dsh-side-chat' || selected.id === 'dsh-annotation') {
+  if (['dsh-side-chat', 'dsh-message-edit', 'dsh-annotation'].includes(selected.id)) {
     assert.ok(!manifest.private, 'Conversation plugin archive must be publishable')
     assert.equal(manifest.dsh?.bundle?.patch, './cordis.patch.yml', 'Missing native plugin bundle registration')
     for (const file of ['lib/index.js', 'lib/client.js', 'cordis.patch.yml', 'README.md', 'README_EN.md', 'LICENSE']) {
@@ -111,7 +111,7 @@ export function inspectArchive(bytes, selected, expectedVersion) {
       'lib/client.js', 'lib/page/pet.html', 'lib/page/pet.js', 'lib/page/pet.css', 'lib/pet-state.js', 'lib/skin-files.js']) {
       assert.ok(files.has(file), `Missing desktop pet runtime or license file ${file}`)
     }
-    for (const id of ['eduwork-page', 'eduwork-page-blue', 'dafeiyu', 'ecnu-huashi', 'ecnu-huashi-boy', 'ecnu-huashi-girl']) {
+    for (const id of ['eduwork-page', 'eduwork-page-blue', 'dafeiyu', 'ecnu-huashi', 'ecnu-huashi-boy', 'ecnu-huashi-dumpling', 'ecnu-huashi-girl']) {
       assert.ok(files.has(`skins/${id}/skin.json`), `Missing built-in character ${id}`)
       const references = value => {
         if (typeof value === 'string' && /\.(svg|png|webp)$/i.test(value)) {
