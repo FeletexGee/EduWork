@@ -154,6 +154,10 @@ export function installNativeDesktopBridge({ getHost, waitForHost, getWindow, re
     try { owner(event) } catch { return }
     sidebarBrowser.opened(request, result)
   })
+  ipcMain.on(SIDEBAR_BROWSER_IPC.shown, (event, request) => {
+    try { owner(event) } catch { return }
+    sidebarBrowser.shown(request)
+  })
   ipcMain.handle(SIDEBAR_BROWSER_IPC.clearData, event => sidebarBrowser.data.confirmAll(owner(event), locale)
     .catch(error => { dialog.showErrorBox(app.getName(), error.message); return false }))
   ipcMain.on(SIDEBAR_BROWSER_IPC.width, (event, guestId, desktop, width, request) => {

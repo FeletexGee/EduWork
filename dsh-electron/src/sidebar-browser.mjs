@@ -21,9 +21,10 @@ import { createSidebarBrowserData } from './sidebar-browser-data.mjs'
 export const SIDEBAR_BROWSER_ENV = 'EDUWORK_SIDEBAR_BROWSER_SECRET'
 // The user's presses and keys a Sidebar page has had, in its top document (lib/page.js of browser-upstream reads it).
 export const SIDEBAR_INPUT_COUNT = '__eduworkInput'
-export const SIDEBAR_BROWSER_IPC = { bind: 'eduwork:sidebar-browser:bind', opened: 'eduwork:sidebar-browser:opened', request: 'eduwork:sidebar-browser:request', clearData: 'eduwork:sidebar-browser:clear-data', width: 'eduwork:sidebar-browser:width' }
+export const SIDEBAR_BROWSER_IPC = { bind: 'eduwork:sidebar-browser:bind', opened: 'eduwork:sidebar-browser:opened', shown: 'eduwork:sidebar-browser:shown', request: 'eduwork:sidebar-browser:request', clearData: 'eduwork:sidebar-browser:clear-data', width: 'eduwork:sidebar-browser:width' }
 
 const OPEN_TIMEOUT_MS = 20_000
+const SHOW_TIMEOUT_MS = 5_000
 // The application page restyles a guest at once; its page sees the new width a few frames later.
 const LAYOUT_TIMEOUT_MS = 2_000
 // A world of its own, so nothing the page put on its window answers for it.
@@ -71,6 +72,7 @@ export function createSidebarBrowser({ getWindow, idleMs = 15_000 }) {
   const pages = new Map()   // guest webContents id -> page
   const opening = new Map() // open request id -> { resolve, reject, timer }
   const arrivals = new Map() // `${session} ${tab}` -> resolve(page)
+  const showing = new Map() // renderer show request id -> { resolve, reject, timer }
   const binding = new Set() // guest ids whose target id is being read
   // guest -> { desktop, width }: whether it shows its page at desktop width,
   // and the width it lays the page out at, as the application page reports.
@@ -84,7 +86,7 @@ export function createSidebarBrowser({ getWindow, idleMs = 15_000 }) {
   }
   const group = sessionId => {
     let value = groups.get(sessionId)
-    if (!value) groups.set(sessionId, value = { sessionId, pages: new Map(), sessions: new Map(), children: new Map(), autoAttach: false, discover: false })
+    if (!value) groups.set(sessionId, value = { sessionId, pages: new Map(), sessions: new Map(), children: new Map(), autoAttach: false, discover: false, current: undefined, showing: undefined })
     return value
   }
   const send = (target, message) => { if (target.client?.readyState === 1) target.client.send(JSON.stringify(message)) }
@@ -126,16 +128,34 @@ export function createSidebarBrowser({ getWindow, idleMs = 15_000 }) {
     if (window && !window.isDestroyed()) window.webContents.setBackgroundThrottling(active === 0)
     for (const page of target.pages.values()) page.guest.setBackgroundThrottling(!target.active)
   }
-  const touch = (target, page, visible) => {
+  const touch = async (target, page, visible) => {
     if (!target.active) {
       target.active = true
       active++
       throttle(target)
       tell({ type: 'show', sessionId: target.sessionId })
     }
-    if (!visible || page === target.current) return
+    if (!visible) return
+    if (page === target.current) return target.showing
     target.current = page
-    tell({ type: 'show', sessionId: target.sessionId, tabId: page.tabId })
+    const requestId = id()
+    const ready = new Promise((resolve, reject) => {
+      const timer = setTimeout(() => {
+        showing.delete(requestId)
+        reject(failure('The Sidebar did not show the Agent page in time'))
+      }, SHOW_TIMEOUT_MS)
+      showing.set(requestId, { target, resolve, reject, timer })
+    })
+    target.showing = ready
+    tell({ type: 'show', requestId, sessionId: target.sessionId, tabId: page.tabId })
+    try {
+      await ready
+    } catch (error) {
+      if (target.current === page) target.current = undefined
+      throw error
+    } finally {
+      if (target.showing === ready) target.showing = undefined
+    }
   }
   const rest = target => {
     clearTimeout(target.idle)
@@ -151,6 +171,12 @@ export function createSidebarBrowser({ getWindow, idleMs = 15_000 }) {
     for (const page of target.pages.values()) detachPage(page)
     target.client = undefined
     target.autoAttach = target.discover = false
+    for (const [requestId, pending] of showing) {
+      if (pending.target !== target) continue
+      showing.delete(requestId)
+      clearTimeout(pending.timer)
+      pending.reject(failure('Browser connection closed before the Sidebar showed the page'))
+    }
     rest(target)
     tell({ type: 'ended', sessionId: target.sessionId })
   }
@@ -178,7 +204,19 @@ export function createSidebarBrowser({ getWindow, idleMs = 15_000 }) {
       arrivals.delete(`${target.sessionId} ${tabId}`)
     }
   }
-  const close = page => tell({ type: 'close', sessionId: page.group.sessionId, tabId: page.tabId })
+  const close = async page => {
+    if (page.guest.isDestroyed()) return
+    const destroyed = once(page.guest, 'destroyed')
+    tell({ type: 'close', sessionId: page.group.sessionId, tabId: page.tabId })
+    let timer
+    try {
+      await Promise.race([destroyed, new Promise((_, reject) => {
+        timer = setTimeout(() => reject(failure('The Sidebar did not close the tab in time')), OPEN_TIMEOUT_MS)
+      })])
+    } finally {
+      clearTimeout(timer)
+    }
+  }
 
   async function browserCommand(target, socket, method, params) {
     switch (method) {
@@ -199,8 +237,8 @@ export function createSidebarBrowser({ getWindow, idleMs = 15_000 }) {
       case 'Target.getTargets': return { targetInfos: [...target.pages.values()].map(info) }
       case 'Target.getBrowserContexts': return { browserContextIds: [] }
       case 'Target.createTarget': return { targetId: (await open(target, params.url)).targetId }
-      case 'Target.closeTarget': close(pageOf(target, params.targetId)); return { success: true }
-      case 'Target.activateTarget': touch(target, pageOf(target, params.targetId), true); return {}
+      case 'Target.closeTarget': await close(pageOf(target, params.targetId)); return { success: true }
+      case 'Target.activateTarget': await touch(target, pageOf(target, params.targetId), true); return {}
       case 'Target.attachToTarget': return { sessionId: attachSession(pageOf(target, params.targetId)) }
       case 'Target.detachFromTarget': {
         const page = target.sessions.get(params.sessionId)
@@ -250,7 +288,7 @@ export function createSidebarBrowser({ getWindow, idleMs = 15_000 }) {
         try { return await page.guest.debugger.sendCommand(method, params) } finally { tell({ type: 'pressed', id: press }) }
       }
       case 'Page.bringToFront': return {}
-      case 'Page.close': close(page); return {}
+      case 'Page.close': await close(page); return {}
       case 'Browser.getWindowForTarget': return { windowId: 1, bounds: { left: 0, top: 0, width: 0, height: 0, windowState: 'normal' } }
     }
     return undefined
@@ -260,11 +298,11 @@ export function createSidebarBrowser({ getWindow, idleMs = 15_000 }) {
   async function dispatch(target, socket, { id: messageId, method, params = {}, sessionId }) {
     const reply = value => { if (socket.readyState === 1) socket.send(JSON.stringify({ id: messageId, ...sessionId === undefined ? {} : { sessionId }, ...value })) }
     try {
-      if (sessionId === undefined) { touch(target); return reply({ result: await browserCommand(target, socket, method, params) }) }
+      if (sessionId === undefined) { await touch(target); return reply({ result: await browserCommand(target, socket, method, params) }) }
       const page = target.sessions.get(sessionId)
       const carrier = page ?? target.children.get(sessionId)
       if (!carrier) throw failure('Session with given id not found.')
-      touch(target, carrier, visibleOnPage.has(method))
+      await touch(target, carrier, visibleOnPage.has(method))
       if (page && (method === 'Runtime.callFunctionOn' || method === 'Runtime.evaluate')) {
         const mark = LAYOUT_MARK.exec(JSON.stringify(params))?.[1]
         if (mark !== undefined) target.marked = { mark, page }
@@ -335,7 +373,7 @@ export function createSidebarBrowser({ getWindow, idleMs = 15_000 }) {
     if (!widths.has(page.guest)) return reply(409, { error: 'The Sidebar does not size this tab\'s page' })
     target.marked = undefined
     const deadline = performance.now() + LAYOUT_TIMEOUT_MS
-    touch(target, page, true)
+    await touch(target, page, true)
     const asked = id()
     const { width } = await new Promise((resolve, reject) => {
       const timer = setTimeout(() => { layouts.delete(asked); reject(new Error('The desktop app did not answer in time; the tab may still switch once it does')) }, deadline - performance.now())
@@ -529,6 +567,14 @@ export function createSidebarBrowser({ getWindow, idleMs = 15_000 }) {
       clearTimeout(pending.timer)
       if (validId(result?.tabId)) pending.resolve(result.tabId)
       else pending.reject(failure(typeof result?.error === 'string' ? result.error.slice(0, 500) : 'The Sidebar could not open a tab'))
+    },
+
+    shown(requestId) {
+      const pending = showing.get(requestId)
+      if (!pending) return
+      showing.delete(requestId)
+      clearTimeout(pending.timer)
+      pending.resolve()
     },
 
     close() {

@@ -33,6 +33,7 @@ const own = event => event.sender === window?.webContents && event.senderFrame =
 ipcMain.on(SIDEBAR_BROWSER_IPC.bind, (event, ...args) => { if (own(event)) void broker.bind(window, ...args).catch(() => {}) })
 ipcMain.on(SIDEBAR_BROWSER_IPC.opened, (event, ...args) => { if (own(event)) broker.opened(...args) })
 ipcMain.on(SIDEBAR_BROWSER_IPC.width, (event, ...args) => { if (own(event)) broker.widthShown(window, ...args) })
+ipcMain.on(SIDEBAR_BROWSER_IPC.shown, (event, request) => { if (own(event)) broker.shown(request) })
 
 // Electron emits ready only after the entry module settles.
 void app.whenReady().then(async () => {

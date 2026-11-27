@@ -273,6 +273,7 @@ test('a new tab reaches the Agent once it shows its page', live, async () => {
     await wait(200)
     assert.equal(await page('document.querySelectorAll("[data-failed]").length'), 0)
     await send('Target.closeTarget', { targetId })
+    assert.equal((await send('Target.getTargets')).targetInfos.some(target => target.targetId === targetId), false)
   }
   client.close()
 })
@@ -305,6 +306,7 @@ test('hidden tabs, a collapsed Sidebar and a conversation in the background keep
     assert.ok(Date.now() < deadline, 'the new tab reaches the Agent')
     await wait(50)
   }
+  assert.equal(context.pages().length, 2, 'the newly opened Sidebar tab did not bind to the browser')
   for (const tab of context.pages()) await greet(tab, 'hidden')
   // The Sidebar opened once for this connection; after the user collapses it, it stays collapsed.
   await page('fixture.expand("session-a", false)')
