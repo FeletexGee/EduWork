@@ -25,6 +25,7 @@ export const SIDEBAR_BROWSER_IPC = { bind: 'eduwork:sidebar-browser:bind', opene
 
 const OPEN_TIMEOUT_MS = 20_000
 const SHOW_TIMEOUT_MS = 5_000
+const AGENT_INPUT_TIMEOUT_MS = 1_000
 // The application page restyles a guest at once; its page sees the new width a few frames later.
 const LAYOUT_TIMEOUT_MS = 2_000
 // A world of its own, so nothing the page put on its window answers for it.
@@ -74,6 +75,23 @@ export function createSidebarBrowser({ getWindow, idleMs = 15_000 }) {
   const arrivals = new Map() // `${session} ${tab}` -> resolve(page)
   const showing = new Map() // renderer show request id -> { resolve, reject, timer }
   const binding = new Set() // guest ids whose target id is being read
+  // Electron may deliver its native input hook after the CDP command resolves.
+  const expectAgentInput = (page, type) => {
+    const pending = page.agentInputs[type]
+    const event = { timer: undefined }
+    event.timer = setTimeout(() => {
+      const index = pending.indexOf(event)
+      if (index !== -1) pending.splice(index, 1)
+    }, AGENT_INPUT_TIMEOUT_MS)
+    event.timer.unref?.()
+    pending.push(event)
+  }
+  const consumeAgentInput = (page, type) => {
+    const event = page.agentInputs[type].shift()
+    if (!event) return false
+    clearTimeout(event.timer)
+    return true
+  }
   // guest -> { desktop, width }: whether it shows its page at desktop width,
   // and the width it lays the page out at, as the application page reports.
   const widths = new WeakMap()
@@ -309,6 +327,8 @@ export function createSidebarBrowser({ getWindow, idleMs = 15_000 }) {
       }
       const input = method.startsWith('Input.')
       if (input) { carrier.inputs++; carrier.byAgent = true }
+      if (method === 'Input.dispatchMouseEvent' && params.type === 'mousePressed') expectAgentInput(carrier, 'mouseDown')
+      if (method === 'Input.dispatchKeyEvent' && params.type === 'keyDown') expectAgentInput(carrier, 'keyDown')
       try {
         const result = page && await pageCommand(page, method, params)
         if (result !== undefined) return reply({ result })
@@ -467,7 +487,7 @@ export function createSidebarBrowser({ getWindow, idleMs = 15_000 }) {
       // so that a menu the page opens now is the Agent's. The two do not take
       // turns within one gesture: while the Agent acts on a tab, the tab takes
       // no input from the user (sidebar-client.js).
-      const page = { guest, group: target, tabId, targetId, sessions: new Set(), frames: new Map(), attached: false, inputs: 0, byAgent: false }
+      const page = { guest, group: target, tabId, targetId, sessions: new Set(), frames: new Map(), attached: false, inputs: 0, agentInputs: { mouseDown: [], keyDown: [] }, byAgent: false }
       pages.set(guest.id, page)
       // A press or key the user gives the page, in any of its frames, as against
       // the Agent's input, which comes through here, counts in its top document:
@@ -475,13 +495,13 @@ export function createSidebarBrowser({ getWindow, idleMs = 15_000 }) {
       // session the Agent's own commands use, the count is there before any
       // command the Agent sends after the input; a page that is leaving refuses
       // it, and is not the page read anyway.
-      const used = () => {
-        if (page.inputs > 0) return
+      const used = type => {
+        if (consumeAgentInput(page, type) || page.inputs > 0) return
         page.byAgent = false
         if (page.attached) void guest.debugger.sendCommand('Runtime.evaluate', { expression: `document.${SIDEBAR_INPUT_COUNT} = (document.${SIDEBAR_INPUT_COUNT} || 0) + 1` }).catch(() => {})
       }
-      guest.on('before-mouse-event', (_event, mouse) => { if (mouse.type === 'mouseDown') used() })
-      guest.on('before-input-event', (_event, input) => { if (input.type === 'keyDown') used() })
+      guest.on('before-mouse-event', (_event, mouse) => { if (mouse.type === 'mouseDown') used('mouseDown') })
+      guest.on('before-input-event', (_event, input) => { if (input.type === 'keyDown') used('keyDown') })
       guest.debugger.on('message', (_event, method, params, child) => {
         if (!target.client || !page.attached) return
         if (method === 'Target.attachedToTarget') { target.children.set(params.sessionId, page); page.frames.set(params.targetInfo.targetId, params.sessionId) }
